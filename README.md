@@ -1,5 +1,7 @@
 # CRT Sparse Sort (Thanh Ha Algorithm)
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22657400.svg)](https://doi.org/10.5281/zenodo.22657400)
+
 A domain-specific $O(N)$ non-comparative sorting framework based on the Chinese Remainder Theorem (CRT) and 2D Coordinate Space Mapping $(S, L)$. Designed for high-performance microarchitectures, pipeline hardware accelerators (FPGA/ASIC), and cyclic signal processing systems (DSP/Radar).
 
 ---
