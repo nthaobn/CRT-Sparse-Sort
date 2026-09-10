@@ -19,27 +19,35 @@ A domain-specific $O(N)$ non-comparative sorting framework based on the Chinese 
 
 ---
 
+## 🔄 What's New in v1.1.1 (vs v1.1.0)
+
+* **Lock-Free Thread-Local Buffering**: Replaced critical sections and global locks with thread-local vector buffering (`local_lower` / `local_upper`) and prefix-sum array assembly. Achieves zero thread contention during 2D coordinate calculation.
+* **Parallel 2-Pointer Merge via Binary Search**: Introduced `find_split_A` algorithm to split the lower group ($A$) and upper mirror group ($B$) into independent contiguous chunks, enabling lock-free parallel merging across CPU cores.
+* **Optimized 64-bit Key Packing Schema (`28|31|5`)**: Restructured bit allocation to fit perfectly into a single `uint64_t` primitive type, eliminating memory padding and maximizing L1/L2 cache line throughput.
+* **Strict Theoretical Domain Recalibration**: Standardized upper bound $V_{\max}$ to exactly $2^{28} \times M_{\text{TOTAL}} - 1$, reflecting hardware-aligned 28-bit Quotient indexing.
+
+---
+
 ## 🚀 Key Theoretical Features
 
 * **2D Coordinate Mapping $(S, L)$**: Decomposes 1D integers into segment index $S$ and local phase $L$, preserving 100% monotonic algebraic order without requiring pairwise comparison operators.
 * **Mirror Symmetry Split**: Reflects residue values across the CRT period midpoint ($M_{\text{MID}}$), saving 50% coordinate storage space while keeping $O(N)$ unmirroring overhead.
-* **64-bit Monotonic Packed Key**: Packs Quotient $Q$ (32-bit), Mirror Bit $M$ (1-bit), Segment $S$ (26-bit), and Local Offset $L$ (5-bit) into a single `uint64_t` variable to preserve monotonic order during parallel sorting passes.
+* **64-bit Monotonic Packed Key**: Packs Quotient Key $Q_{\text{key}}$ (28-bit), Segment $S$ (31-bit), and Local Offset $L$ (5-bit) into a single `uint64_t` variable to preserve monotonic order during parallel radix passes.
 * **Branch-Free Execution**: Eliminates control-flow branches inside the core loop, ensuring deterministic execution time and optimization for L1 Cache locality.
 
 ---
 
 ## 📊 Supported Data Range & Limits
 
-The 64-bit packed key encoding supports strict monotonic sorting for values up to:
+The strict 64-bit packed key encoding ($28 | 31 | 5$) guarantees accurate monotonic sorting for numbers up to:
 
-$$V_{\max} = 2^{32} \times M_{\text{TOTAL}} - 1 = 13,893,025,849,152,012,287 \approx 13.89 \times 10^{18}$$
+$$V_{\max} = 2^{28} \times M_{\text{TOTAL}} - 1 = 868,367,236,112,416,767 \approx 868.37 \times 10^{15}$$
 
-* **Range Coverage**: ~75.3% of the complete 64-bit unsigned integer space (`uint64_t`).
-* **Packed Key Layout**:
-  * `Bit [32..63]` (32 bits): Quotient $Q$ ($0 \le Q \le 2^{32}-1$)
-  * `Bit [31]` (1 bit): Mirror Flag $M$ ($0$ or $1$)
-  * `Bit [5..30]` (26 bits): Inverted/Direct Segment Index $S_{\text{key}}$ ($0 \le S \le 55,773,217$)
-  * `Bit [0..4]` (5 bits): Inverted/Direct Local Offset $L_{\text{key}}$ ($0 \le L \le 28$)
+* **Range Coverage**: Supports unsigned integers up to ~868 Quadrillion (~868 Trẻn).
+* **Packed Key Layout (`uint64_t`)**:
+  * `Bit [36..63]` (28 bits): Inverted/Direct Quotient Key $Q_{\text{key}}$ ($0 \le Q \le 2^{28}-1$)
+  * `Bit [5..35]` (31 bits): Segment Index $S$ ($1 \le S \le 1,699,060,562$)
+  * `Bit [0..4]` (5 bits): Local Offset $L$ ($0 \le L \le 28$)
 
 ---
 
